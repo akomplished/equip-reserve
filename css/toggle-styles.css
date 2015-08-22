@@ -1,0 +1,139 @@
+﻿        .ss-available {
+            -moz-box-shadow: inset 0px 1px 0px 0px #9acc85;
+            -webkit-box-shadow: inset 0px 1px 0px 0px #9acc85;
+            box-shadow: inset 0px 1px 0px 0px #9acc85;
+            background: -webkit-gradient(linear, left top, left bottom, color-stop(0.05, #88c47c), color-stop(1, #68a54b));
+            background: -moz-linear-gradient(top, #88c47c 5%, #68a54b 100%);
+            background: -webkit-linear-gradient(top, #88c47c 5%, #68a54b 100%);
+            background: -o-linear-gradient(top, #88c47c 5%, #68a54b 100%);
+            background: -ms-linear-gradient(top, #88c47c 5%, #68a54b 100%);
+            background: linear-gradient(to bottom, #88c47c 5%, #68a54b 100%);
+            filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#88c47c', endColorstr='#68a54b',GradientType=0);
+            background-color: #88c47c;
+            -moz-border-radius: 6px;
+            -webkit-border-radius: 6px;
+            border-radius: 6px;
+            border: 1px solid #3b6e22;
+            cursor: pointer;
+            font-family: Arial;
+            font-size: 11px;
+            font-weight: bold;
+            padding-top: 3px;
+            padding-bottom: 3px;
+            text-decoration: none;
+            color: rgb(55, 55, 55);
+        }
+
+            .ss-available:before {
+                content: "Available \A ";
+                white-space: pre;
+            }
+
+            .ss-available:hover {
+                background: -webkit-gradient(linear, left top, left bottom, color-stop(0.05, #68a54b), color-stop(1, #88c47c));
+                background: -moz-linear-gradient(top, #68a54b 5%, #88c47c 100%);
+                background: -webkit-linear-gradient(top, #68a54b 5%, #88c47c 100%);
+                background: -o-linear-gradient(top, #68a54b 5%, #88c47c 100%);
+                background: -ms-linear-gradient(top, #68a54b 5%, #88c47c 100%);
+                background: linear-gradient(to bottom, #68a54b 5%, #88c47c 100%);
+                filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#68a54b', endColorstr='#88c47c',GradientType=0);
+                background-color: #68a54b;
+            }
+
+            .ss-available:active {
+                position: relative;
+                top: 1px;
+            }
+
+            .ss-available:link {
+                font-size: 11px;
+                color: rgb(252, 252, 252 );
+            }
+
+            .ss-available:visited {
+                font-size: 11px;
+                color: rgb(252, 252, 252 );
+            }
+
+        .ss-tentative {
+            -moz-box-shadow: inset 0px 1px 0px 0px #bee2f9;
+            -webkit-box-shadow: inset 0px 1px 0px 0px #bee2f9;
+            box-shadow: inset 0px 1px 0px 0px #bee2f9;
+            background: -webkit-gradient(linear, left top, left bottom, color-stop(0.05, #63b8ee), color-stop(1, #468ccf));
+            background: -moz-linear-gradient(top, #63b8ee 5%, #468ccf 100%);
+            background: -webkit-linear-gradient(top, #63b8ee 5%, #468ccf 100%);
+            background: -o-linear-gradient(top, #63b8ee 5%, #468ccf 100%);
+            background: -ms-linear-gradient(top, #63b8ee 5%, #468ccf 100%);
+            background: linear-gradient(to bottom, #63b8ee 5%, #468ccf 100%);
+            filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#63b8ee', endColorstr='#468ccf',GradientType=0);
+            background-color: #63b8ee;
+            -moz-border-radius: 6px;
+            -webkit-border-radius: 6px;
+            border-radius: 6px;
+            border: 1px solid #3866a3;
+            cursor: pointer;
+            font-family: Arial;
+            font-size: 11px;
+            font-weight: bold;
+            padding-top: 3px;
+            padding-bottom: 3px;
+            text-decoration: none;
+            color: rgb(55, 55, 55);
+        }
+
+            .ss-tentative:hover {
+                background: -webkit-gradient(linear, left top, left bottom, color-stop(0.05, #468ccf), color-stop(1, #63b8ee));
+                background: -moz-linear-gradient(top, #468ccf 5%, #63b8ee 100%);
+                background: -webkit-linear-gradient(top, #468ccf 5%, #63b8ee 100%);
+                background: -o-linear-gradient(top, #468ccf 5%, #63b8ee 100%);
+                background: -ms-linear-gradient(top, #468ccf 5%, #63b8ee 100%);
+                background: linear-gradient(to bottom, #468ccf 5%, #63b8ee 100%);
+                filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#468ccf', endColorstr='#63b8ee',GradientType=0);
+                background-color: #468ccf;
+            }
+
+            .ss-tentative:active {
+                position: relative;
+                top: 1px;
+            }
+
+            .ss-tentative:before {
+                content: "Selected \A ";
+                white-space: pre;
+            }
+
+            .ss-tentative:link {
+                font-size: 11px;
+                color: rgb(252, 252, 252 );
+            }
+
+        .ss-reserved {
+            -moz-box-shadow: inset 0px 1px 0px 0px #ffffff;
+            -webkit-box-shadow: inset 0px 1px 0px 0px #ffffff;
+            box-shadow: inset 0px 1px 0px 0px #ffffff;
+            background: -webkit-gradient(linear, left top, left bottom, color-stop(0.05, #ededed), color-stop(1, #dfdfdf));
+            background: -moz-linear-gradient(top, #ededed 5%, #dfdfdf 100%);
+            background: -webkit-linear-gradient(top, #ededed 5%, #dfdfdf 100%);
+            background: -o-linear-gradient(top, #ededed 5%, #dfdfdf 100%);
+            background: -ms-linear-gradient(top, #ededed 5%, #dfdfdf 100%);
+            background: linear-gradient(to bottom, #ededed 5%, #dfdfdf 100%);
+            filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ededed', endColorstr='#dfdfdf',GradientType=0);
+            background-color: #ededed;
+            -moz-border-radius: 6px;
+            -webkit-border-radius: 6px;
+            border-radius: 6px;
+            border: 1px solid #dcdcdc;
+            cursor: pointer;
+            font-family: Arial;
+            font-size: 11px;
+            font-weight: bold;
+            padding-top: 3px;
+            padding-bottom: 3px;
+            text-decoration: none;
+            color: rgb(55, 55, 55);
+        }
+
+            .ss-reserved:before {
+                content: "Reserved By\A ";
+                white-space: pre;
+            }
