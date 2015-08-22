@@ -1,0 +1,928 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Equipment Reservation Form</title>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE =10; chrome=1;">
+    <meta name="fragment" content="!">
+    <meta name="viewport" content="width =device-width">
+    <base target="_blank">
+    <link href='https://script.google.com/static/forms/client/css/4099506628-formview_st_ltr.css' type='text/css' rel='stylesheet'>
+    <link href='https://script.google.com/static/forms/client/css/3145455273-mobile_formview_st_ltr.css' type='text/css' rel='stylesheet' media='screen and (max-device-width: 721px)'>
+    <link rel="shortcut icon" href="https://ssl.gstatic.com/docs/spreadsheets/forms/favicon_jfk2.png" type="image/x-icon">
+    <script src="scripts/jquery-2.1.0.min.js" type="text/javascript"></script>
+    <script src="scripts/jquery-ui.min.js" type="text/javascript"></script>
+    <link rel='stylesheet' href='css/jquery-ui.css' type='text/css'>
+    <link rel='stylesheet' href='css/equip-req.css' type='text/css'>
+    <link rel='stylesheet' href='css/toggle-styles.css' type='text/css'>
+    <script type="text/javascript" src="index.js"></script>
+    <script type="text/javascript" src="https://apis.google.com/js/client:platform.js?onload=onJSClientLoad" defer async></script>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+
+        var googleUser = {};
+        var globalparam = {};
+        var equipment = {};
+
+        var host = "akomplished.github.io";
+        if (window.location.host == host && window.location.protocol != 'https:') {
+            window.location.href = "https://akomplished.github.io/equip-reserve/"
+        }
+
+        var today = new Date();
+        $(document).ready(function () {
+            $('#user-details').append('<center><table><tr><td></td><td><center><img class="ui-corner-all ui-widget-content ui-widget" style="max-width: 35%; max-height: 35%;" src="images/gears-animation1.gif"></center></td><td></td></tr><tr><td></td></tr><tr><td colspan=\"3\"><center>Performing Google Authentication.</center></td></tr></table></center>');
+            $('.ui-draggable').draggable();
+            $(".ui-button").hover(function () {
+                $(this).toggleClass("ui-state-hover");
+            });
+
+            $('input#eq-tb-startdate').change(function () {
+                var date2 = $('input#eq-tb-startdate').datepicker('getDate', '+1d');
+                var date1 = $('input#eq-tb-startdate').datepicker('getDate');
+                var datefix = (date2.getDate() + 1).toString().split("-").join("/");
+                date2.setDate(new Date(datefix));
+                $('input#eq-tb-enddate').datepicker('setDate', date2);
+                $('input#eq-tb-enddate').datepicker('option', 'minDate', date1);
+            });
+
+            $('.eq-tb-date').datepicker({
+                minDate: new Date(today.toDateString().split("-").join("/")),
+                gotoCurrent: true,
+                beforeShowDay: $.datepicker.noWeekends,
+                beforeShow: function (a, b) {
+                    var cnt = 0;
+                    var interval = setInterval(function () {
+                        cnt++;
+                        if (b.dpDiv.is(":visible")) {
+                            var parent = "";
+                            var selector = "#" + b.id;
+                            parent = $(selector).parent("a");
+                            b.dpDiv.position({
+                                my: "right bottom",
+                                at: "right top",
+                                of: parent
+                            });
+                            clearInterval(interval);
+                        } else if (cnt > 50) {
+                            clearInterval(interval);
+                        }
+                    }, 10);
+                }
+            });
+
+            $('#type-container').on('change', 'input[type="radio"]', function () {
+                $('ul.input-grid').empty();
+
+                if ($('#eq-cb-type_other').is(':checked')) {
+                    return $('input[id="eq-tb-type_other"]').prop({
+                        "required": true,
+                        "disabled": false
+                    });
+                }
+                $('input[id="eq-tb-type_other"]').prop({
+                    "value": "",
+                    "required": false,
+                    "disabled": true
+                });
+
+                var increment = parseInt($("input[name='eq-checkbox']:checked").data('increment'), 10);
+                var maximum = parseInt($("input[name='eq-checkbox']:checked").data('maximum'), 10);
+                var cart = parseInt($("input[name='eq-checkbox']:checked").data('cartcount'), 10);
+
+                var inc = increment;
+                var cartcount = 1;
+
+                if (cart >= 10 && cart < 20) {
+                    $('ul.input-grid').addClass('input-grid-dual');
+                    $('ul.input-grid').removeClass('input-grid-triple');
+                } else if (cart >= 20) {
+                    $('ul.input-grid').addClass('input-grid-triple');
+                    $('ul.input-grid').removeClass('input-grid-dual');
+                } else {
+                    $('ul.input-grid').removeClass('input-grid-dual');
+                    $('ul.input-grid').removeClass('input-grid-triple');
+                }
+
+                while (increment <= maximum) {
+                    $("ul.input-grid").append('<li><input type="radio" id="eq-count_' + increment + '" value="' + increment + '" name="eq-count" onchange="setClassValid(this)" required><label for="eq-count_' + increment + '" class="ss-choice-label">' + increment + '<i> - ' + cartcount + ' Cart(s)</i></label></li>');
+                    increment += inc;
+                    cartcount += 1;
+                }
+            });
+
+            $('#form-submit').click(function () {
+                (function () {
+                    var getUserInput = {
+                        getParams: function () {
+                            $("#container").show();
+                            $("#container").css("z-index", 1500);
+                            $("#blocker").show();
+                            $(window).scrollTop(0);
+
+                            if ($('eq-tb-type_other').length === 0) {
+                                $('input[name="eq-checkbox"]').each(function (a, b) {
+                                    if (b.checked === true) {
+                                        globalparam.equipment = b.value;
+                                        return;
+                                    }
+                                });
+                            } else {
+                                globalparam.equipment = $('#eq-tb-type_other').val();
+                            }
+                            
+                                
+
+                            globalparam.quantity = parseInt($('input[name="eq-count"]:checked').val(), 10);
+                            globalparam.maxquantity = $('input[name="eq-count"]:last').val();
+                            globalparam.startdate = new Date($('input[name="eq-startdate"]').val()).toDateString().split('-').join('/');
+                            globalparam.enddate = new Date($('input[name="eq-enddate"]').val()).toDateString().split('-').join('/');
+                            console.log(globalparam);
+                            this.querySheet();
+                        },
+                        querySheet: function () {
+                            var queryString = "select%20B%2C%20C%2C%20E%2C%20F%2C%20J%2C%20H%20where%20G%20%3D%20%22" + globalparam.equipment + "%22%20and%20E%20%3E%3D%20" + Date.parse(globalparam.startdate) + "%20and%20F%20%3C%3D%20" + Date.parse(globalparam.enddate);
+                            console.log(queryString);
+                            var queryUrl = "https://docs.google.com/a/mrpkedu.org/spreadsheets/d/18hPXh8SC_cStvZQ8gJtBsUwKz6iP26Qu1HvD7oWNZqg/gviz/tq?sheet=Reservations&tq=" + queryString;
+                            console.log(queryUrl);
+                            this.query = new google.visualization.Query(queryUrl);
+                            this.query.send($.proxy(this.appointmentResponse, this));
+                        },
+                        appointmentResponse: function (response) {
+                            if (response.isError()) {
+                                alert('The following error occured: ' + response.getMessage() + ' ' + response.getDetailedMessage());
+                                $("#container").hide();
+                                $("#blocker").hide();
+                                return;
+                            }
+                            this.json = $.parseJSON(response.getDataTable().toJSON());
+                            this.parseResponse();
+                        },
+                        parseResponse: function () {
+                            this.appts = [];
+                            for (var i = 0; i < this.json.rows.length; i++) {
+                                var reservation = {};
+                                for (var j = 0; j < this.json.cols.length; j++) {
+                                    if (this.json.cols[j].label === 'StartDate' | this.json.cols[j].label === 'EndDate') {
+                                        reservation[this.json.cols[j].label] = this.json.rows[i].c[j].v;
+                                    }
+                                    if (this.json.cols[j].label === 'Periods') {
+                                        if (this.json.rows[i].c[j].v.indexOf(',') > 0) reservation[this.json.cols[j].label] = $.each(this.json.rows[i].c[j].v.split(','), function (v, i) {
+                                            return parseInt(i, 10);
+                                        });
+                                        else reservation[this.json.cols[j].label] = parseInt(this.json.rows[i].c[j].v, 10);
+                                    }
+                                    if (this.json.cols[j].label === 'FirstName' | this.json.cols[j].label === 'LastName') {
+                                        reservation[this.json.cols[j].label] = this.json.rows[i].c[j].v;
+                                    }
+                                    if (this.json.cols[j].label === 'Quantity') {
+                                        reservation[this.json.cols[j].label] = parseInt(this.json.rows[i].c[j].v, 10);
+                                    }
+                                }
+                                this.appts.push(reservation);
+                            }
+                            console.log(this.appts);
+                            this.reservationMatching();
+                        },
+                        reservationMatching: function () {
+                            this.groups = {};
+                            var explode = [];
+                            for (var j = 0; j < this.appts.length; j++) {
+                                if (this.appts[j].StartDate < this.appts[j].EndDate) {
+                                    var dateArray = getDatesBetween(this.appts[j].StartDate, this.appts[j].EndDate);
+                                    for (var k in dateArray) {
+                                        explode.push({
+                                            Date: Date.parse(dateArray[k]),
+                                            Periods: this.appts[j].Periods,
+                                            Quantity: this.appts[j].Quantity,
+                                            ReservedBy: this.appts[j].LastName
+                                        });
+                                    }
+                                } else {
+                                    explode.push({
+                                        Date: this.appts[j].StartDate,
+                                        Periods: this.appts[j].Periods,
+                                        Quantity: this.appts[j].Quantity,
+                                        ReservedBy: this.appts[j].LastName
+                                    });
+                                }
+                            }
+                            for (var i = 0; i < explode.length; i++) {
+                                var group = explode[i].Date;
+                                if (!(group in this.groups)) this.groups[group] = [];
+                                this.groups[group].Date = $.datepicker.formatDate('mm/dd/yy', new Date(group));
+                                this.groups[group].Day = $.datepicker.formatDate('DD', new Date(group));
+                                if (explode[i].Periods.length > 0) {
+                                    for (var ind = 0; ind < explode[i].Periods.length; ind++) {
+                                        var period = parseInt(explode[i].Periods[ind], 10);
+                                        var times = getTimeslots(group, period);
+                                        if (period in this.groups[group]) {
+                                            this.groups[group][period].Quantity += explode[i].Quantity;
+                                            this.groups[group][period].ReservedBy.push(explode[i].ReservedBy);
+                                            this.groups[group][period].Available = ((this.groups[group][period].Quantity + globalparam.quantity) <= globalparam.maxquantity);
+                                        } else {
+                                            this.groups[group][period] = {
+                                                Number: period,
+                                                StartTime: times.StartTime,
+                                                EndTime: times.EndTime,
+                                                Quantity: explode[i].Quantity,
+                                                ReservedBy: [explode[i].ReservedBy]
+                                            };
+                                            this.groups[group][period].Available = ((this.groups[group][period].Quantity + globalparam.quantity) <= globalparam.maxquantity);
+                                        }
+                                    }
+                                } else {
+                                    var period = explode[i].Periods;
+                                    var times = getTimeslots(group, period);
+                                    if (period in this.groups[group]) {
+                                        this.groups[group][period].Quantity += explode[i].Quantity;
+                                        this.groups[group][period].ReservedBy.push(explode[i].ReservedBy);
+                                        this.groups[group][period].Available = ((this.groups[group][period].Quantity + globalparam.quantity) <= globalparam.maxquantity);
+                                    } else {
+                                        this.groups[group][period] = {
+                                            Number: period,
+                                            StartTime: times.StartTime,
+                                            EndTime: times.EndTime,
+                                            Quantity: explode[i].Quantity,
+                                            ReservedBy: [explode[i].ReservedBy]
+                                        };
+                                        this.groups[group][period].Available = ((this.groups[group][period].Quantity + globalparam.quantity) <= globalparam.maxquantity);
+                                    }
+                                }
+                            }
+                            console.log(this.groups);
+                            this.fillDateRange();
+                        },
+
+                        fillDateRange: function () {
+                            var dateRange = getDatesBetween(globalparam.startdate, globalparam.enddate);
+                            this.searchDates = {};
+                            for (var i = 0; i < dateRange.length; i++) {
+                                dateRange[i] = dateRange[i].toDateString().split('-').join('/');
+                                var search = Date.parse(dateRange[i]);
+                                if (search in this.groups) {
+                                    for (var j = 0; j < 7; j++) {
+                                        if (!(j in this.groups[search])) {
+                                            var times = getTimeslots(search, j);
+                                            this.groups[search][j] = {
+                                                Number: j,
+                                                StartTime: times.StartTime,
+                                                EndTime: times.EndTime,
+                                                Quantity: 0,
+                                                Available: true,
+                                                ReservedBy: []
+                                            };
+                                        }
+                                    }
+                                    this.searchDates[search] = this.groups[search];
+                                    continue;
+                                }
+                                this.searchDates[search] = [];
+                                this.searchDates[search].Date = $.datepicker.formatDate('mm/dd/yy', new Date(search));
+                                this.searchDates[search].Day = $.datepicker.formatDate('DD', new Date(search));
+                                for (var j = 0; j < 7; j++) {
+                                    var times = getTimeslots(search, j);
+                                    this.searchDates[search][j] = {
+                                        Number: j,
+                                        StartTime: times.StartTime,
+                                        EndTime: times.EndTime,
+                                        Quantity: 0,
+                                        Available: true,
+                                        ReservedBy: []
+                                    };
+                                }
+                            }
+                            this.createTable();
+                        },
+
+                        createTable: function () {
+                            var table = "<p>Make your selections by clicking on the timeframes you want to make your reservations for:<br /><br />  ";
+                            table += "<table id=\"availappt\" class=\"apptable\">";
+                            table += "<thead><tr>";
+                            table += "<th>Date</th><th>Period 0</th><th>Period 1</th><th>Period 2</th><th>Period 3</th><th>Period 4</th><th>Period 5</th><th>Period 6</th>";
+                            table += "</tr></thead>";
+                            $.each(this.searchDates, function (i, v) {
+                                var row = "<tr class=\"approw\" data-date=\"" + v.Date + "\" data-day=\"" + v.Day + "\">";
+                                row += "<td>" + v.Day + " " + v.Date + "</td>";
+                                for (var x = 0; x < 7; x++) {
+                                    var res = (v[x].Available) ? (" class='ss-available' onclick='toggle(this)'>" + v[x].StartTime + " - " + v[x].EndTime) : (" class='ss-reserved'>" + v[x].ReservedBy.toString());
+                                    row += "<td data-period='" + v[x].Number + "' data-available='" + v[x].Available + "'" + res + "</td>";
+                                }
+                                row += "</tr>";
+                                table += row;
+                            });
+                            table += "</table>";
+                            $('#divchart').html(table);
+                            this.displayModal();
+                            $("tr.approw").children("td").css("width", "90px");
+                            $("tr.approw").children("td:first").css("width", "75px");
+                        },
+                        displayModal: function () {
+                            $('#divchart').dialog({
+                                autoOpen: true,
+                                title: 'Equipment Reservation Search Results',
+                                resizable: false,
+                                modal: false,
+                                position: {
+                                    my: "top",
+                                    at: "bottom center",
+                                    of: ".ss-header-image-container"
+                                },
+                                width: 775,
+                                minHeight: 350,
+                                maxHeight: 600,
+                                buttons: {
+                                    Submit: {
+                                        id: "eq-submit-btn",
+                                        text: "Submit",
+                                        click: function (event) {
+                                            if (!($("td.ss-tentative").length)) {
+                                                alert('\t\tSubmit Failed\t\t\nYou have not made any selections.');
+                                                return false
+                                            }
+                                            globalparam.reminder = $("#eq-c-reminder").is(":checked");
+                                            $('body').trigger('dialogClosed');
+                                            $(this).dialog("close");
+                                        }
+                                    },
+                                    Cancel: function () {
+                                        $(this).dialog("close");
+                                        $("#blocker").hide();
+                                    }
+                                },
+                                open: function (event, ui) {
+                                    $('input#submit').hide();
+                                    $("#container").hide();
+                                    $(".ui-dialog").css("z-index", 1500);
+                                    var reminderObj = "<div id=\"remindercb\" class=\"buttonpane-checkbox\" style=\"display: inline;\"><input id=\"eq-c-reminder\" type=\"checkbox\" style=\"margin-top: 0.1 em;\" value=\"sendreminder\" name=\"eq-reminder\"><label for=\"eq-c-reminder\">&nbsp&nbspYes, send me a email reminder the day before my Reservation(s).</label></div>";
+                                    $("div.ui-dialog.ui-widget.ui-widget-content.ui-corner-all.ui-front.ui-dialog-buttons.ui-draggable div.ui-dialog-buttonpane.ui-widget-content.ui-helper-clearfix").append(reminderObj);
+                                    $("#remindercb").show();
+                                },
+                                close: function (event, ui) {
+                                    $('input#submit').show();
+                                    $('#remindercb').remove();
+                                }
+                            });
+                        }
+                    }
+                    getUserInput.getParams();
+                })();
+            });
+
+            $('body').bind('dialogClosed', function () {
+                (function () {
+                    var postForm = {
+                        getSelections: function () {
+                            $("#container").show();
+                            $("#blocker").show();
+                            this.payloadItems = [];
+                            var obj = [];
+                            $("td.ss-tentative").parents("tr").each(function () {
+                                var selections = {};
+                                selections.date = new Date($(this).data('date')).toLocaleDateString('en-US');
+                                selections.periods = $(this).children("td.ss-tentative").map(function (ind, val) {
+                                    return $(val).data('period');
+                                }).get();
+                                obj.push(selections);
+                            });
+                            obj.reverse();
+                            var index, n, counter, adv = 0;
+                            for (index = 0; index < obj.length; index++) {
+                                adv += 1;
+                                n = 2;
+                                var payloadItem = {};
+                                var startdate = obj[index].date;
+                                var startperiods = obj[index].periods.toString();
+                                var nextdate = (typeof obj[adv] === 'undefined') ? (obj[index].date) : (obj[adv].date);
+                                var nextperiods = (typeof obj[adv] === 'undefined') ? (obj[index].periods.toString()) : (obj[adv].periods.toString());
+                                var diff = dateDiff(startdate, nextdate);
+                                var compare = compareArray(startperiods, nextperiods);
+                                var previousdate = "";
+                                var previousperiods = "";
+                                if (diff === n && compare === true) {
+                                    do {
+                                        previousdate = nextdate;
+                                        n += 1;
+                                        adv += 1;
+                                        index += 1;
+                                        nextdate = (typeof obj[adv] === 'undefined') ? (nextdate) : (obj[adv].date);
+                                        nextperiods = (typeof obj[adv] === 'undefined') ? (nextperiods) : (obj[adv].periods.toString());
+                                        diff = dateDiff(startdate, nextdate);
+                                        compare = compareArray(startperiods, nextperiods);
+                                    } while (diff === n && compare === true);
+                                    n = 2;
+                                    payloadItem = {
+                                        TimeStamp: new Date().toLocaleString('en-US'),
+                                        FirstName: $('input[name="firstname-entry"]').val(),
+                                        LastName: $('input[name="lastname-entry"]').val(),
+                                        Email: $('input[name="email-entry"]').val(),
+                                        Periods: startperiods,
+                                        StartDate: Date.parse(new Date(startdate)),
+                                        EndDate: Date.parse(new Date(previousdate)),
+                                        Equipment: globalparam.equipment,
+                                        Reminder: (globalparam.reminder) ? (Date.parse((new Date(startdate)).removeDays(1))) : (Date.parse(new Date('01/01/1971'))),
+                                        Quantity: globalparam.quantity,
+                                        func: "addRes"
+                                    };
+                                    this.payloadItems.push($.param(payloadItem));
+                                } else {
+                                    n = 2;
+                                    payloadItem = {
+                                        TimeStamp: new Date().toLocaleString('en-US'),
+                                        FirstName: $('input[name="firstname-entry"]').val(),
+                                        LastName: $('input[name="lastname-entry"]').val(),
+                                        Email: $('input[name="email-entry"]').val(),
+                                        Periods: startperiods,
+                                        StartDate: Date.parse(new Date(startdate)),
+                                        EndDate: Date.parse(new Date(startdate)),
+                                        Equipment: globalparam.equipment,
+                                        Reminder: (globalparam.reminder) ? (Date.parse((new Date(startdate)).removeDays(1))) : (Date.parse(new Date('01/01/1971'))),
+                                        Quantity: globalparam.quantity,
+                                        func: "addRes"
+                                    };
+                                    this.payloadItems.push($.param(payloadItem));
+                                }
+                            }
+                            console.log(this.payloadItems);
+                            this.ajaxRequest(this.payloadItems);
+                        },
+                        ajaxCaller: function (d) {
+                            this.ajaxResults = [];
+                            return $.ajax({
+                                url: d.url,
+                                crossDomain: d.crossDomain,
+                                jsonp: d.jsonp,
+                                dataType: d.dataType,
+                                data: d.data
+                            }).fail(function (jqXHR, textStatus, errorThrown) {
+                                postForm.ajaxResults.push(errorThrown);
+                            }).done(function (data) {
+                                postForm.ajaxResults.push(data.number);
+                            });
+                        },
+                        ajaxRequest: function () {
+                            var ajax_calls = [];
+                            for (var p = 0; p < this.payloadItems.length; p++) {
+                                ajax_calls.push(this.ajaxCaller({
+                                    url: 'https://script.google.com/a/macros/mrpkedu.org/s/AKfycbySJ9Yp0_rY4320wMvg_9fQJUEDyOVztpdcCYa4jEVh/exec',
+                                    crossDomain: true,
+                                    jsonp: 'callback',
+                                    dataType: 'jsonp',
+                                    data: this.payloadItems[p]
+                                }));
+                            }
+                            $.when.apply(this, ajax_calls).done(function () {
+                                $("#container").hide();
+                                return postForm.successResponse();
+                            });
+                        },
+                        successResponse: function () {
+                            $("#success-container").show();
+                            $("div#successdetails span").text("Successfully processed " + this.ajaxResults.length + " of " + this.payloadItems.length + " of your reservation requests.");
+                            this.confirmParams = {
+                                func: "sendConfirm",
+                                Number: this.ajaxResults
+                            };
+                            this.createConfirmation();
+                        },
+                        errorResponse: function (data) {
+                            $("#error-container").show();
+                            $("#errormsg").text("Error Code: " + data.message);
+                        },
+                        createConfirmation: function () {
+                            var queryString = $.param(this.confirmParams);
+                            $.ajax({
+                                url: 'https://script.google.com/a/macros/mrpkedu.org/s/AKfycbySJ9Yp0_rY4320wMvg_9fQJUEDyOVztpdcCYa4jEVh/exec',
+                                crossDomain: true,
+                                jsonp: 'callback',
+                                dataType: 'jsonp',
+                                data: queryString
+                            }).fail(function (jqXHR, textStatus, errorThrown) {
+                                postForm.ajaxResults.push(errorThrown);
+                            }).done(function (data) {
+                                postForm.ajaxResults.push(data.result);
+                            });
+                        }
+                    }
+                    postForm.getSelections();
+                })();
+        });
+    });
+
+    </script>
+    <script type="text/javascript">
+
+        function optionalChange(target) {
+            if ($(target).prop('checked')) {
+                return $('fieldset#equipment input[type="text"]').prop({ "required": true, "disabled": false });
+            }
+            return $('fieldset#equipment input[type="text"]').prop({ "value": "", "required": false, "disabled": true });
+        }
+
+        function handleFormSubmit(e) {
+            var obj = {};
+            $('#equip-form :input').each(function (a, b) {
+                obj[$(b).attr('name')] = $(b).val();
+            });
+            obj['increment'] = (obj.maximum / obj.cartcount);
+            $('#tblType tbody').append('<tr><td>' + obj.type + '</td><td>' + obj.increment + '</td><td>' + obj.maximum + '</td><td>' + obj.cartcount + '</td><td><img src="images/trash-delete.gif" onclick="return removeRow($(this));"></tr>');
+        }
+
+        function removeRow(e) {
+            if (window.confirm("Are you sure you want to delete this entry?"))
+                return $(e).parents('tr').remove();
+        }
+
+        function setClassValid(obj) {
+            if (obj.validity.valid) {
+                if (obj.type == 'radio') {
+                    $('input[name="' + obj.name + '"].invalid').each(function () {
+                        $(this).removeClass("invalid");
+                    });
+                }
+                return $(obj).removeClass("invalid");
+            }
+        }
+
+        function getTimeslots(date, period) {
+            var time_options = {
+                hour12: true,
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            var d = new Date(date);
+            if (d.getDay() == 3) { //wednesday
+                var start = ['07:08:00', '09:05:00', '09:58:00', '10:54:00', '11:47:00', '13:20:00', '14:13:00'];
+                var end = ['07:55:00', '09:52:00', '10:48:00', '11:41:00', '12:34:00', '14:07:00', '15:00:00'];
+            } else {
+                var start = ['07:00:00', '08:00:00', '09:04:00', '10:11:00', '11:15:00', '12:58:00', '14:02:00'];
+                var end = ['07:54:00', '08:58:00', '10:05:00', '11:09:00', '12:13:00', '13:56:00', '15:00:00'];
+            }
+            var s = start[period].split(':');
+            d.setHours(parseInt(s[0], 10), parseInt(s[1], 10));
+            var stime = d.toLocaleTimeString('en-US', time_options);
+            stime = stime.replace(/\u200E/g, '');
+            stime = stime.replace(/^([^\d]*\d{1,2}:\d{1,2}):\d{1,2}([^\d]*)$/, '$1$2');
+            stime = stime.substring(0, (stime.length - 1)).toLowerCase();
+            var e = end[period].split(':');
+            d.setHours(parseInt(e[0], 10), parseInt(e[1], 10));
+            var etime = d.toLocaleTimeString('en-US', time_options);
+            etime = etime.replace(/\u200E/g, '');
+            etime = etime.replace(/^([^\d]*\d{1,2}:\d{1,2}):\d{1,2}([^\d]*)$/, '$1$2');
+            etime = etime.substring(0, (etime.length - 1)).toLowerCase();
+            var times = {
+                StartTime: stime.replace(/\s/g, ""),
+                EndTime: etime.replace(/\s/g, "")
+            };
+            return times;
+        }
+
+        Date.prototype.isWeekend = function () {
+            var d = new Date(this.valueOf());
+            if (d.getDay().valueOf() == 0 | d.getDay().valueOf() == 6) return true;
+            else return false;
+        };
+
+        Date.prototype.addDays = function (days) {
+            var dat = new Date(this.valueOf());
+            dat.setDate(dat.getDate() + days);
+            return dat;
+        };
+
+        Date.prototype.removeDays = function (days) {
+            var dat = new Date(this.valueOf());
+            dat.setDate(dat.getDate() - days);
+            return dat;
+        };
+
+        function toggle(sender) {
+            $(sender).toggleClass("ss-available ss-tentative");
+            return true;
+        }
+
+        function compareArray(arrayA, arrayB) {
+            for (var i = 0; i < arrayA.length; i++) {
+                if (arrayA[i] !== arrayB[i] | arrayA.length !== arrayB.length)
+                    return false;
+            }
+            return true;
+        }
+
+        function dateDiff(minDate, maxDate) {
+            var min = new Date(minDate);
+            var max = new Date(maxDate);
+            var diff = new Date(max - min).addDays(1);
+            var days = diff / 1000 / 60 / 60 / 24;
+            return days;
+        }
+
+        function getDatesBetween(start, end) {
+            var dateArray = [];
+            var fstart = new Date(start).toDateString().split('-').join('/');
+            var fend = new Date(end).toDateString().split('-').join('/');
+            var current = new Date(fstart);
+            var enddate = new Date(fend);
+            while (current <= enddate) {
+                if (!current.isWeekend()) {
+                    current.setHours(0, 0, 0, 0);
+                    dateArray.push(current);
+                }
+                current = current.addDays(1);
+            }
+            return dateArray;
+        }
+    </script>
+    <style>
+        .input-grid {
+            margin-top: 5px;
+            list-style-type: none;
+            padding-left: 10px;
+        }
+
+        .input-grid li {
+            padding-top: 2px;
+            padding-bottom: 2px;
+        }
+
+        .input-grid-dual {
+            column-count:2;
+            -moz-column-count:2;
+            -webkit-column-count:2;
+        }
+
+        .input-grid-triple {
+            column-count:3;
+            -moz-column-count:3;
+            -webkit-column-count:3;
+        }
+
+        .highlighter tbody tr {
+            background-color: rgb(255,255,255);
+        }
+
+        .highlighter tbody tr:hover {
+            background-color: rgb(222,222,222);
+        }
+
+        body {
+            font-family: Arial,sans-serif;
+            color: #433F38;
+            font-weight: 400;
+            font-size: 14px;
+            font-style: normal;
+            background-color: rgb(231, 238, 247);
+            background-image: url('https://ssl.gstatic.com/docs/forms/themes/images/v1/0AX42CRMsmRFbUy03NTAzM2Q4My03ODU1LTQ2NzItODI2YS1kZmU5YzdiMzZjOGQ/blue-stripe-bg.png');
+            background-repeat: repeat;
+            background-position: center top;
+        }
+
+        #form-submit {
+            padding: .4em 10px .4em 20px;
+            text-decoration: none;
+            position: relative;
+        }
+
+            #form-submit span.ui-icon {
+                margin: 0 5px 0 0;
+                position: absolute;
+                left: .2em;
+                top: 50%;
+                margin-top: -8px;
+            }
+
+        .date-container {
+            padding: .4em 2px .4em 2px;
+            text-decoration: none;
+            position: relative;
+            display: inline-block;
+        }
+
+            .date-container span.icon-span-before {
+                margin: 0 5px 0 0;
+                position: relative;
+                left: .2em;
+                top: 50%;
+                margin-top: -8px;
+                width: 100px;
+                display: inline;
+                font-weight: 600;
+            }
+
+            .date-container span.icon-span-after {
+                margin: 0 0 0 5px;
+                position: relative;
+                right: .2em;
+                top: 1%;
+                margin-top: 1px;
+                display: inline;
+            }
+
+        fieldset > p {
+            text-indent: 5%;
+        }
+
+        .mep {
+            position: absolute;
+            right: 30%;
+            top: 1%;
+            font-weight: 600;
+            color: rgb(240, 173, 7);
+            float: right;
+            font-size: 16px;
+            display: block;
+        }
+
+        .buttonpane-checkbox {
+            position: relative;
+            float: left;
+            margin-left: 15px;
+        }
+
+        .ss-logo-image {
+            background-image: url('https://ssl.gstatic.com/docs/forms/forms_logo_small_light.png');
+            background-size: 108px 21px;
+            width: 108px;
+            height: 21px;
+        }
+
+        .pre-auth {
+            display: none;
+        }
+
+        .post-auth {
+            display: none;
+        }
+
+        #chart {
+            width: 500px;
+            height: 300px;
+            margin-bottom: 1em;
+        }
+
+        #video-list {
+            padding-left: 1em;
+            list-style-type: none;
+        }
+
+            #video-list > li {
+                cursor: pointer;
+            }
+
+                #video-list > li:hover {
+                    color: blue;
+                }
+    </style>
+</head>
+<body>
+    <div>
+        <div class="eq-form-container">
+            <div class="ss-header-image-container">
+                <div class="ss-header-image-image">
+                    <img id="main-banner" src='https://lh4.googleusercontent.com/WljPMxzHtLb3IwXoy1wa-CFeewQOSg0MGKx5evElwvinIW35wfkQU_qveKO7QmrBxdsU' />
+                </div>
+            </div>
+            <div class="eq-form">
+                <form method="POST">
+                    <span style="display: block;" class="mep">Equipment Reservation Form</span>
+                    <div class="eq-form-entry">
+                        <fieldset id="user" class="ui-widget ui-corner-all eq-fieldset-container">
+                            <legend class="ui-dialog-title ui-widget-header ui-corner-tl ui-corner-tr eq-legend-container">
+                                User Information
+                            </legend>
+                            <div id="user-details" style="margin-top: 10px; width: 90%; margin-left: 5%; margin-right: 5%; display: inline-block;">
+                            </div>
+                        </fieldset>
+                    </div>
+                    <div class="eq-form-entry">
+                        <fieldset id="equipment" class="ui-widget ui-corner-all eq-fieldset-container">
+                            <legend class="ui-dialog-title ui-widget-header ui-corner-tl ui-corner-tr eq-legend-container">
+                                Equipment Details
+                            </legend>
+                            <p>Please specify the type of equipment you would like to reserve by selecting an option and quantity below.</p>
+                            <div style="margin-left: 5%;">
+                                <fieldset class="ui-corner-all" style="border: 0; display: inline-block; vertical-align: top;">
+                                    <legend><strong>Equipment Type</strong></legend>
+                                    <div id="type-container" style="text-indent: 10px;">
+                                        <span><input type="radio" id="eq-cb-type_other" value="Other" name="eq-checkbox" onchange="optionalChange(this);"> <label for="eq-cb-type_other" class="ss-choice-label">Other (Specify Below)</label></span>
+                                        <span style="text-indent: 25px;"><input type="text" name="eq-checkbox" id="eq-tb-type_other" value="" disabled></span>
+                                    </div>
+                                </fieldset>
+                                <fieldset class="ui-corner-all" style="border: 0; display: inline-block;">
+                                    <legend><strong>Equipment Quantity</strong></legend>
+                                    <ul class="input-grid">
+
+                                    </ul>
+                                </fieldset>
+                            </div>
+                        </fieldset>
+                    </div>
+                    <div class="eq-form-entry">
+                        <fieldset id="timeframe" class="ui-widget ui-corner-all eq-fieldset-container">
+                            <legend class="ui-dialog-title ui-widget-header ui-corner-tl ui-corner-tr eq-legend-container">
+                                Reservation Date Range
+                            </legend>
+                            <p>Use the following two date fields to specify a range of available reservation times and dates.</p>
+                            <div style="width: 90%; margin-left: 5%; margin-right: 5%; display: inline-block;">
+                                <div class="date-container" style="position: relative; float: left; vertical-align: middle; margin-left: 15px;" onclick="document.getElementById('eq-tb-startdate').focus(); return false;">
+                                    <p><a onclick="return false;" id="startdate-container" class="date-container ui-corner-all"><span class="icon-span-before">Start Date: </span><input type="text" name="eq-startdate" value="" class="eq-tb-date" id="eq-tb-startdate" readonly pattern="(0?[1-9]|[12]\d|3[01])[/\-](0?[0-9]|1?[0-9]|2?[0-9]|3?[0-1])[/\-](2014|20)\d\d" onchange="setClassValid(this)" oninput="setClassValid(this)" required><span class="icon-span-after"><img style="vertical-align: middle;" src="https://lh3.googleusercontent.com/X7aSjJKMAEQxVmh4F3TrvwrhWwN4QmXp_iCWfc5pTI1pr9rbOjc6ojOsAYEWh_k-Vd8-"></span></a></p>
+                                </div>
+                                <div class="date-container" style="position: relative; float: right; vertical-align: middle; margin-right: 15px;" onclick="document.getElementById('eq-tb-enddate').focus(); return false;">
+                                    <p><a onclick="return false;" id="enddate-container" class="date-container ui-corner-all"><span class="icon-span-before">End Date: </span><input type="text" name="eq-enddate" value="" class="eq-tb-date" id="eq-tb-enddate" readonly pattern="(0?[1-9]|[12]\d|3[01])[/\-](0?[0-9]|1?[0-9]|2?[0-9]|3?[0-1])[/\-](2014|20)\d\d" onchange="setClassValid(this)" oninput="setClassValid(this)" required><span class="icon-span-after"><img style="vertical-align: middle;" src="https://lh3.googleusercontent.com/X7aSjJKMAEQxVmh4F3TrvwrhWwN4QmXp_iCWfc5pTI1pr9rbOjc6ojOsAYEWh_k-Vd8-"></span></a></p>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                    <p style="text-align: center;"><a onclick="return false;" id="form-submit" class=" ui-button ui-button-icon-primary ui-state-default ui-corner-all"><span class="ui-icon ui-icon-search"></span>Check Availability</a></p>
+                </form>
+            </div>
+            <div class="ss-footer">
+                <div class="ss-attribution"></div>
+                <div class="ss-legal">
+                    <div class="disclaimer-separator"></div>
+                    <div class="disclaimer">
+                        <div class="powered-by-logo">
+                            <span class="powered-by-text">Powered by</span>
+                            <a href="https://www.google.com/forms/about/?utm_source =product&amp;utm_medium =forms_logo&amp;utm_campaign =forms">
+                                <div class="ss-logo-container ss-logo-css-container">
+                                    <div class="ss-logo-image"></div>
+                                    <span class="aria-only-help">Google Forms</span>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="ss-terms">
+                            <span class="disclaimer-msg">This form was created inside of Moorpark Unified School District.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="divchart" class="chart ui-dialog" style="z-index: 1500;"></div>
+    <div id="blocker" class="ui-widget-overlay" style="display: none;"></div>
+    <div id="container" class="ui-draggable ui-corner-all ui-widget-header" style="position: absolute; margin-left: -147px; left: 50%; top: 35%; width: 280px; display: none; font-size: 12px; border: 1px solid rgb(128, 128, 128);">
+        <center>
+            <img style="display: block; margin-top: 8px;" class="ui-corner-all ui-widget-content ui-widget" src="images/gears-animation1.gif">
+            <p>Please wait while we process your request.</p>
+        </center>
+
+    </div>
+    <div id="success-container" class="ui-state-highlight ui-corner-all ui-draggable" style="position: absolute; margin-left: -212px; left: 50%; top: 35%; width: 425px; display: none; border: 1px solid #67b021;">
+        <div class="ui-dialog-titlebar ui-dialog-title" style="width: inherit; display: block; font-size: 14px;">
+            <p style="margin: 2px 0 2px 0;">
+                <span class="ui-icon ui-icon-circle-check" style="float: left; margin-right: .5em; margin-left: .1em; margin-top: .1em;"></span>
+                <strong>Successful Response</strong>
+            </p>
+        </div>
+        <div id="successdetails" class="ui-dialog-content" style="margin: 2px 7px 2px 7px; padding: 10px; font-size: 12px; border-top: 1px solid rgb(222,222,222);">
+            <span>Your reservations have been arranged successfully!</span>
+            <p class="ui-dialog-content">Thank you for using the Moorpark High School Equipment Reservation Form, you will receive a confirmation email shortly.</p>
+        </div>
+        <div class="ui-dialog-buttonpane" style="text-align: right; margin-bottom: 3px; margin-right: 3px;">
+            <button id="success-btn-close" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" onclick="$('#success-container').hide(); $('#blocker').hide(); return false;">
+                <span class="ui-button-text">Close</span>
+            </button>
+        </div>
+    </div>
+    <div id="error-container" class="ui-state-error ui-corner-all ui-draggable" style="position: absolute; margin-left: -237px; left: 50%; top: 35%; width: 475px; display: none; border: 1px solid #cd0a0a;">
+        <div class="ui-dialog-titlebar ui-dialog-title" style="width: inherit; display: block; font-size: 14px; ">
+            <p style="margin: 2px 0 2px 0;">
+                <span class="ui-icon ui-icon-alert" style="float: left; margin-right: .5em; margin-left: .1em; margin-top: .1em;"></span>
+                <strong>Error Response</strong>
+            </p>
+
+            <div id="errordetails" class="ui-dialog-content" style="margin: 2px 7px 2px 7px; padding: 10px; font-size: 12px; border-top: 1px solid rgb(222,222,222)">
+                An error occured while processing your request.  Please retry the request.<br />
+                Contact your Systems Administrator if you continue to experiance problems.
+            </div>
+            <span style="display: block;" id="errormsg"></span>
+        </div>
+        <div class="ui-dialog-buttonpane" style="text-align: right; margin-bottom: 3px; margin-right: 3px;">
+            <button id="error-btn-close" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" onclick="$('#error-container').hide(); $('#blocker').hide(); return false;">
+                <span class="ui-button-text">Close</span>
+            </button>
+        </div>
+    </div>
+    <div class="inputuserinfo"></div>
+    <div id="message-prompt-window" class="ui-state-error ui-corner-all ui-draggable" style="position: absolute; margin-left: -237px; left: 50%; top: 35%; width: 475px; visibility: hidden; border: 1px solid #cd0a0a;">
+        <div class="ui-dialog-titlebar ui-dialog-title" style="width: inherit; display: block; font-size: 14px; ">
+            <p style="margin: 2px 0 2px 0;"><span class="ui-icon ui-icon-alert" style="float: left; margin-right: .5em; margin-left: .1em; margin-top: .1em;"></span><strong><span id="message-prompt-window-title"></span></strong></p>
+            <div id="message-prompt-window-content" class="ui-dialog-content" style="margin: 2px 7px 2px 7px; padding: 10px; font-size: 12px; border-top: 1px solid rgb(222,222,222); display: block;">
+            </div>
+            <div id="message-prompt-window-button-container" class="ui-dialog-buttonpane" style="text-align: right; margin-bottom: 3px; margin-right: 3px; display: inline;">
+                <button id="message-prompt-window-button-yes" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" value="true">
+                    <span id="message-prompt-window-button-yes-text" class="ui-button-text">Authorize</span>
+                </button>
+                &nbsp
+                <button id="message-prompt-window-button-no" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" value="false" onclick="$('#message-prompt-window').hide(); $('#blocker').hide(); return false;">
+                    <span id="message-prompt-window-button-no-text" class="ui-button-text">Cancel</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <button id="authorizebutton" style="display: none;"></button>
+</body>
+﻿
+
+</html>
