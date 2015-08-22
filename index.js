@@ -1,6 +1,6 @@
 ﻿(function () {
     var creds = {
-        apiKey: 'AIzaSyAnY3HAZwB3sxcyF7Ma_yHOrW4hX6h6p1k',
+        apiKey: ' AIzaSyAh9LEWUk9ap7-a3PMWEKc-fa2o2GYWSqo',
         clientId: '575160396391-877cnqiks55u2is62qnbkn5egiiedqlc.apps.googleusercontent.com',
         scopes: ['https://www.googleapis.com/auth/userinfo.email'],
         domain: 'mrpkedu.org'
