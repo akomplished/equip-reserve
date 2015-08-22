@@ -1,10 +1,14 @@
 ﻿(function () {
+
     var creds = {
-        apiKey: ' AIzaSyAh9LEWUk9ap7-a3PMWEKc-fa2o2GYWSqo',
+        apiKey: 'AIzaSyAh9LEWUk9ap7-a3PMWEKc-fa2o2GYWSqo',
         clientId: '575160396391-877cnqiks55u2is62qnbkn5egiiedqlc.apps.googleusercontent.com',
         scopes: ['https://www.googleapis.com/auth/userinfo.email'],
         domain: 'mrpkedu.org'
     };
+
+
+    var unsavedChangesExist = true;
 
     var authorizedUser = ['jgobel@mrpk.org', 'mdavis@mrpk.org'];
     var driveEquipment, fileInfo = {};
@@ -110,16 +114,7 @@
         }).execute(function (resp) {
             if (resp && !resp.error) {
                 fileInfo = resp;
-                var downloadUrl = resp.downloadUrl;
-                var accessToken = gapi.auth.getToken().access_token;
-
-                var xhr = new XMLHttpRequest();
-                xhr.open('GET', downloadUrl);
-                xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
-                xhr.onload = function () {
-                    handleDriveResult(xhr.responseText);
-                };
-                xhr.send();
+                driveRequestHandler(resp);
             } else if (resp.error.code == 401) {
                 incrementAuth();
             } else {
@@ -128,13 +123,27 @@
         });
     };
 
+    function driveRequestHandler(response) {
+        var accessToken = gapi.auth.getToken().access_token;
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', response.downloadUrl);
+        xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
+        xhr.onload = function () {
+            console.log(xhr.responseText);
+            handleDriveResult(xhr.responseText);
+        };
+        xhr.send();
+    }
+
     function handleDriveResult(response) {
         driveEquipment = $.parseJSON(response);
+        $('#dynamic-types').empty();
         var cartCount = 1;
         for (var d in driveEquipment) {
-            $('#type-container').prepend('<span><input type="radio" data-cartcount="' + driveEquipment[d].cartcount + '" data-increment="' + driveEquipment[d].inc + '" data-maximum="' + driveEquipment[d].max + '" id="eq-cb-type_' + d + '" value="' + d + '" name="eq-checkbox" onchange="setClassValid(this)" required> <label for="eq-cb-type_' + d + '" class="ss-choice-label">' + d + '</label></span>');
+            $('#dynamic-types').prepend('<span><input type="radio" data-cartcount="' + driveEquipment[d].cartcount + '" data-increment="' + driveEquipment[d].inc + '" data-maximum="' + driveEquipment[d].max + '" id="eq-cb-type_' + d + '" value="' + d + '" name="eq-checkbox" onchange="setClassValid(this)" required> <label for="eq-cb-type_' + d + '" class="ss-choice-label">' + d + '</label></span>');
             cartCount += 1;
         }
+        $('#container').hide();
     }
 
     var handleUserQuery = function (response) {
@@ -162,7 +171,7 @@
         var divcontainer = document.createElement('div');
         var display = '<form id="equip-form" onsubmit="event.preventDefault(); handleFormSubmit($(this));">';
             $(divcontainer).addClass('inputuserinfo');
-            display += '<div style="width: 100%; display: block;"><center><table id="tblType" class="highlighter" style="width: 80%; text-align: center; font-size: 13px;"><thead><tr><th>Equipment Type</th><th>Cart Size</th><th>Total Units</th><th>Cart Count</th></tr></thead><tbody>';
+            display += '<div style="width: 100%; display: block;"><center><table id="tblType" class="highlighter" style="width: 80%; text-align: center; font-size: 13px;"><thead><tr><th>Equipment Type</th><th># Per Cart</th><th>Total Units</th><th>Cart Count</th><th>Remove</th></tr></thead><tbody>';
             for (var e in driveEquipment) {
                 display += '<tr><td>' + e + '</td><td>' + driveEquipment[e].inc + '</td><td>' + driveEquipment[e].max + '</td><td>' + driveEquipment[e].cartcount + '</td><td><img src="images/trash-delete.gif" onclick=" removeRow(this);"></tr>';
             }
@@ -190,6 +199,7 @@
                         id: "prompt-btn",
                         text: "Save",
                         click: function (event) {
+                            isDirty = false
                             var objs = {};
                             $('#tblType tbody tr').each(function () {
                                 var obj = {};
@@ -204,8 +214,12 @@
                                 return $.extend(objs, obj);
                             });
                             console.log(objs);
-                            updateJsonFile(JSON.stringify(objs));
-                            $(this).dialog("close");
+                            updateJsonFile(JSON.stringify(objs), function (result) {
+                                unsavedChangesExist = false;
+                                driveRequestHandler(result);
+                                $('#container').show();
+                                $('.inputuserinfo').dialog("close");
+                            });
                         }
                     },
                     Cancel: function () {
@@ -218,6 +232,17 @@
                 },
                 open: function (event, ui) {
                     $("#blocker").show();
+                    $(".ui-dialog-buttonpane button:contains('Save')").button('disable');
+                    $('#tblType tbody').on('change', function () {
+                        unsavedChangesExist = true;
+                    });
+                },
+                beforeClose: function (event, ui) {
+                    if (unsavedChangesExist) {
+                        if (!window.confirm('You have unsaved changes. Would you like to discard any unsaved changes?'))
+                            return event.preventDefault();
+                        return;
+                    }
                 }
             });
     }
@@ -285,20 +310,16 @@
              fileData +
              close_delim;
 
-        if (!callback) { callback = function (file) { console.log("Update Complete ", file) }; }
-
         var request = gapi.client.request({
             'path': '/upload/drive/v2/files/' + fileInfo.id,
             'method': 'PUT',
-            'params': {'uploadType': 'multipart', 'alt': 'json'},
+            'params': { 'uploadType': 'multipart', 'alt': 'json' },
             'headers': {
                 'Authorization': 'Bearer ' + accessToken,
                 'Content-Type': 'multipart/mixed; boundary="' + boundary + '"'
             },
-            'body': multipartRequestBody,
-            callback: callback
-        }).execute(function (resp) {
-            console.log(resp);
+            'body': multipartRequestBody
         });
+        request.execute(callback);
     }
 })();

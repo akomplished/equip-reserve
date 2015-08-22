@@ -40,11 +40,7 @@
             });
 
             $('input#eq-tb-startdate').change(function () {
-                var date2 = $('input#eq-tb-startdate').datepicker('getDate', '+1d');
                 var date1 = $('input#eq-tb-startdate').datepicker('getDate');
-                var datefix = (date2.getDate() + 1).toString().split("-").join("/");
-                date2.setDate(new Date(datefix));
-                $('input#eq-tb-enddate').datepicker('setDate', date2);
                 $('input#eq-tb-enddate').datepicker('option', 'minDate', date1);
             });
 
@@ -73,7 +69,15 @@
                 }
             });
 
+            $("ul.input-grid").on('change', 'input[type="radio"]', function () {
+                $('input[name="eq-count"]:checked + label').css('font-weight', 700);
+                $('input[name="eq-count"]:not(:checked) + label').css('font-weight', 400);
+            });
+
+
             $('#type-container').on('change', 'input[type="radio"]', function () {
+                $('input[name="eq-checkbox"]:checked + label').css('font-weight', 700);
+                $('input[name="eq-checkbox"]:not(:checked) + label').css('font-weight', 400);
                 $('ul.input-grid').empty();
 
                 if ($('#eq-cb-type_other').is(':checked')) {
@@ -121,21 +125,16 @@
                             $("#container").css("z-index", 1500);
                             $("#blocker").show();
                             $(window).scrollTop(0);
-
-                            if ($('eq-tb-type_other').length === 0) {
-                                $('input[name="eq-checkbox"]').each(function (a, b) {
-                                    if (b.checked === true) {
-                                        globalparam.equipment = b.value;
-                                        return;
-                                    }
-                                });
+                            var e, q = "";
+                            if ($('input[name="eq-checkbox"]:last').is(":checked")) {
+                                e = $('input[name="other-tb"]').val();
+                                q = 1;
                             } else {
-                                globalparam.equipment = $('#eq-tb-type_other').val();
+                                e = $('input[name="eq-checkbox"]:checked').val();
+                                q = parseInt($('input[name="eq-count"]:checked').val(), 10);
                             }
-                            
-                                
-
-                            globalparam.quantity = parseInt($('input[name="eq-count"]:checked').val(), 10);
+                            globalparam.equipment = e;
+                            globalparam.quantity = q;
                             globalparam.maxquantity = $('input[name="eq-count"]:last').val();
                             globalparam.startdate = new Date($('input[name="eq-startdate"]').val()).toDateString().split('-').join('/');
                             globalparam.enddate = new Date($('input[name="eq-enddate"]').val()).toDateString().split('-').join('/');
@@ -523,16 +522,33 @@
 
         function handleFormSubmit(e) {
             var obj = {};
+            var current = $('#tblType tbody tr').map(function (a, b) {
+                return b.children[0].innerHTML;
+            }).get();
+
+            if ($('input[name="type"]').val() in current) {
+                alert('Error: Unable to add Equipment Type ' + $('input[name="type"]').val() + '.  Type already exists.');
+                return false;
+            }
             $('#equip-form :input').each(function (a, b) {
                 obj[$(b).attr('name')] = $(b).val();
             });
-            obj['increment'] = (obj.maximum / obj.cartcount);
+            var remainder = obj.maximum % obj.cartcount;
+            if (remainder) {
+                alert('Error: Total Units must be evenly divisible into the Number of Carts');
+                return false;
+            }
+            obj['increment'] = obj.maximum / obj.cartcount;
             $('#tblType tbody').append('<tr><td>' + obj.type + '</td><td>' + obj.increment + '</td><td>' + obj.maximum + '</td><td>' + obj.cartcount + '</td><td><img src="images/trash-delete.gif" onclick="return removeRow($(this));"></tr>');
+            $(".ui-dialog-buttonpane button:contains('Save')").button('enable');
         }
 
         function removeRow(e) {
-            if (window.confirm("Are you sure you want to delete this entry?"))
-                return $(e).parents('tr').remove();
+            if (window.confirm("Are you sure you want to delete " + e.closest('tr').children[0].innerHTML + "?")) {
+                $(".ui-dialog-buttonpane button:contains('Save')").button('enable');
+                return e.closest('tr').remove();
+            }
+                
         }
 
         function setClassValid(obj) {
@@ -805,14 +821,15 @@
                                 <fieldset class="ui-corner-all" style="border: 0; display: inline-block; vertical-align: top;">
                                     <legend><strong>Equipment Type</strong></legend>
                                     <div id="type-container" style="text-indent: 10px;">
+                                        <div id="dynamic-types"></div>
                                         <span><input type="radio" id="eq-cb-type_other" value="Other" name="eq-checkbox" onchange="optionalChange(this);"> <label for="eq-cb-type_other" class="ss-choice-label">Other (Specify Below)</label></span>
-                                        <span style="text-indent: 25px;"><input type="text" name="eq-checkbox" id="eq-tb-type_other" value="" disabled></span>
+                                        <input style="margin-left: 35px; margin-top: 2px;" type="text" name="other-tb" id="eq-tb-type_other" disabled>
                                     </div>
                                 </fieldset>
-                                <fieldset class="ui-corner-all" style="border: 0; display: inline-block;">
+                                <fieldset class="ui-corner-all" style="border: 0; display: inline-block; margin-left: 20px;">
                                     <legend><strong>Equipment Quantity</strong></legend>
                                     <ul class="input-grid">
-
+                                        <li>Select an equipment type.</li>
                                     </ul>
                                 </fieldset>
                             </div>
