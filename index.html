@@ -395,9 +395,9 @@
                                 n = 2;
                                 var payloadItem = {
                                     TimeStamp: new Date().toLocaleString('en-US'),
-                                    FirstName: googleUser.FirstName,
-                                    LastName: googleUser.LastName,
-                                    Email: googleUser.Email,
+                                    FirstName: googleUser['given_name'],
+                                    LastName: googleUser['family_name'],
+                                    Email: googleUser['email'],
                                     Func: "addRes"
                                 };
                                 var startdate = obj[index].date;
