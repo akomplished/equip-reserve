@@ -419,15 +419,15 @@
                                     n = 2;
                                     payloadItem.EndDate = Date.parse(new Date(startdate));
                                 }
-                                TimeStamp = new Date().toLocaleString('en-US');
-                                FirstName = $('input[name="firstname-entry"]').val();
-                                LastName = $('input[name="lastname-entry"]').val();
-                                Email = $('input[name="email-entry"]').val();
-                                Periods = startperiods;
-                                StartDate = Date.parse(new Date(startdate));
-                                Equipment = globalparam.equipment;
-                                Reminder = (globalparam.reminder) ? (Date.parse((new Date(startdate)).removeDays(1))) : (Date.parse(new Date('01/01/1971')));
-                                Quantity = globalparam.quantity;
+                                payloadItem.TimeStamp = new Date().toLocaleString('en-US');
+                                payloadItem.FirstName = $('input[name="firstname-entry"]').val();
+                                payloadItem.LastName = $('input[name="lastname-entry"]').val();
+                                payloadItem.Email = $('input[name="email-entry"]').val();
+                                payloadItem.Periods = startperiods;
+                                payloadItem.StartDate = Date.parse(new Date(startdate));
+                                payloadItem.Equipment = globalparam.equipment;
+                                payloadItem.Reminder = (globalparam.reminder) ? (Date.parse((new Date(startdate)).removeDays(1))) : (Date.parse(new Date('01/01/1971')));
+                                payloadItem.Quantity = globalparam.quantity;
                                 this.payloadItems.push($.param(payloadItem));
                             }
                             console.log(this.payloadItems);
