@@ -39,6 +39,8 @@
                 $(this).toggleClass("ui-state-hover");
             });
 
+            globalparam.unsavedChangesExist = false;
+
             $('input#eq-tb-startdate').change(function () {
                 var date1 = $('input#eq-tb-startdate').datepicker('getDate');
                 $('input#eq-tb-enddate').datepicker('option', 'minDate', date1);
@@ -514,9 +516,9 @@
     <script type="text/javascript">
 
         function optionalChange(target) {
-            if ($(target).prop('checked')) {
+            if ($(target).prop('checked'))
                 return $('fieldset#equipment input[type="text"]').prop({ "required": true, "disabled": false });
-            }
+
             return $('fieldset#equipment input[type="text"]').prop({ "value": "", "required": false, "disabled": true });
         }
 
@@ -539,16 +541,16 @@
                 return false;
             }
             obj['increment'] = obj.maximum / obj.cartcount;
-            $('#tblType tbody').append('<tr><td>' + obj.type + '</td><td>' + obj.increment + '</td><td>' + obj.maximum + '</td><td>' + obj.cartcount + '</td><td><img src="images/trash-delete.gif" onclick="return removeRow($(this));"></tr>');
+            $('#tblType tbody').append('<tr><td>' + obj.type + '</td><td>' + obj.increment + '</td><td>' + obj.maximum + '</td><td>' + obj.cartcount + '</td><td><input type="image" src="images/trash-delete.gif" onclick="return removeRow($(this));"></td></tr>');
             $(".ui-dialog-buttonpane button:contains('Save')").button('enable');
         }
 
         function removeRow(e) {
             if (window.confirm("Are you sure you want to delete " + e.closest('tr').children[0].innerHTML + "?")) {
                 $(".ui-dialog-buttonpane button:contains('Save')").button('enable');
+                globalparam.unsavedChangesExist = true;
                 return e.closest('tr').remove();
-            }
-                
+            } 
         }
 
         function setClassValid(obj) {
@@ -651,6 +653,10 @@
         }
     </script>
     <style>
+        .img-pointer {
+            cursor: pointer;
+        }
+
         .input-grid {
             margin-top: 5px;
             list-style-type: none;

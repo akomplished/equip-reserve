@@ -1,14 +1,18 @@
 ﻿(function () {
-
+    /*
     var creds = {
         apiKey: 'AIzaSyAh9LEWUk9ap7-a3PMWEKc-fa2o2GYWSqo',
         clientId: '575160396391-877cnqiks55u2is62qnbkn5egiiedqlc.apps.googleusercontent.com',
         scopes: ['https://www.googleapis.com/auth/userinfo.email'],
         domain: 'mrpkedu.org'
+    };*/
+
+    var creds = {
+        apiKey: 'AIzaSyDkvBhwHdCAo74RJpdQbP2F0-mAnvk_OcI',
+        clientId: '575160396391-4abkdgm56omv3bv8km13t5roks64r48b.apps.googleusercontent.com',
+        scopes: ['https://www.googleapis.com/auth/userinfo.email'],
+        domain: 'mrpkedu.org'
     };
-
-
-    var unsavedChangesExist = true;
 
     var authorizedUser = ['jgobel@mrpk.org', 'mdavis@mrpk.org'];
     var driveEquipment, fileInfo = {};
@@ -171,18 +175,18 @@
         var divcontainer = document.createElement('div');
         var display = '<form id="equip-form" onsubmit="event.preventDefault(); handleFormSubmit($(this));">';
             $(divcontainer).addClass('inputuserinfo');
-            display += '<div style="width: 100%; display: block;"><center><table id="tblType" class="highlighter" style="width: 80%; text-align: center; font-size: 13px;"><thead><tr><th>Equipment Type</th><th># Per Cart</th><th>Total Units</th><th>Cart Count</th><th>Remove</th></tr></thead><tbody>';
+            display += '<div style="width: 100%; display: block;"><center><table id="tblType" class="highlighter" style="width: 90%; text-align: center; font-size: 13px;"><thead><tr><th>Equipment Type</th><th># Per Cart</th><th>Total Units</th><th>Total  Carts</th><th>Remove</th></tr></thead><tbody>';
             for (var e in driveEquipment) {
                 display += '<tr><td>' + e + '</td><td>' + driveEquipment[e].inc + '</td><td>' + driveEquipment[e].max + '</td><td>' + driveEquipment[e].cartcount + '</td><td><img src="images/trash-delete.gif" onclick=" removeRow(this);"></tr>';
             }
             display += '</tbody></table><center></div>';
             
-            display += '<fieldset class="ui-corner-all ui-draggable" style="margin-bottom: 10px;"><legend>New Equipment Entry</legend>';
+            display += '<fieldset class="ui-corner-all ui-draggable" style="margin-bottom: 5px; margin-top: 10px"><legend>New Equipment Entry</legend>';
             display += '<span style="display: block; margin-top: 3px; margin-bottom: 3px;">';
-            display += '<label for="first" class="ss-choice-label">Type: </label><input type="text" id="type" name="type" required size="15">&nbsp';
-            display += '<label for="inc" class="ss-choice-label">Number of Carts: </label><input type="text" id="cartcount" name="cartcount" required size="5" pattern="[0-9]+">&nbsp';
-            display += '<label for="max" class="ss-choice-label">Total: </label><input type="text" id="max" name="maximum" required size="5" pattern="[0-9]+">';
-            display += '</span><input class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" type="submit" id="equip-form-submit" value="Add" form="equip-form">';
+            display += '<label for="first" class="ss-choice-label">Type: </label><input type="text" id="type" name="type" required size="15">&nbsp&nbsp';
+            display += '<label for="inc" class="ss-choice-label">Number of Carts: </label><input type="text" id="cartcount" name="cartcount" required size="5" pattern="[0-9]+">&nbsp&nbsp';
+            display += '<label for="max" class="ss-choice-label">Total: </label><input type="text" id="max" name="maximum" required size="5" pattern="[0-9]+">&nbsp&nbsp';
+            display += '<input class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" style="float: right; position: relative;" type="submit" id="equip-form-submit" value="Add" form="equip-form"></span>';
             display += '</fieldset>';
             display += "</form>";
 
@@ -192,14 +196,13 @@
                 title: 'Add Equipment Type',
                 resizable: false,
                 modal: false,
-                width: 550,
+                width: 575,
                 maxheight: 750,
                 buttons: {
                     Submit: {
                         id: "prompt-btn",
                         text: "Save",
                         click: function (event) {
-                            isDirty = false
                             var objs = {};
                             $('#tblType tbody tr').each(function () {
                                 var obj = {};
@@ -214,8 +217,8 @@
                                 return $.extend(objs, obj);
                             });
                             console.log(objs);
+                            globalparam.unsavedChangesExist = false;
                             updateJsonFile(JSON.stringify(objs), function (result) {
-                                unsavedChangesExist = false;
                                 driveRequestHandler(result);
                                 $('#container').show();
                                 $('.inputuserinfo').dialog("close");
@@ -223,8 +226,12 @@
                         }
                     },
                     Cancel: function () {
-                        $(this).dialog("close");
-                        $("#blocker").hide();
+                        if (globalparam.unsavedChangesExist === true) {
+                            if (!window.confirm('You have unsaved changes. Would you like to discard any unsaved changes?'))
+                                return event.preventDefault();
+                            else
+                                return $(this).dialog("close");
+                        }
                     }
                 },
                 close: function (event, ui) {
@@ -233,12 +240,9 @@
                 open: function (event, ui) {
                     $("#blocker").show();
                     $(".ui-dialog-buttonpane button:contains('Save')").button('disable');
-                    $('#tblType tbody').on('change', function () {
-                        unsavedChangesExist = true;
-                    });
                 },
                 beforeClose: function (event, ui) {
-                    if (unsavedChangesExist) {
+                    if (globalparam.unsavedChangesExist === true) {
                         if (!window.confirm('You have unsaved changes. Would you like to discard any unsaved changes?'))
                             return event.preventDefault();
                         return;
