@@ -393,7 +393,17 @@
                             for (index = 0; index < obj.length; index++) {
                                 adv += 1;
                                 n = 2;
-                                var payloadItem = {};
+                                var payloadItem = {
+                                    TimeStamp: "",
+                                    FirstName: "",
+                                    LastName: "",
+                                    Email: "",
+                                    Periods: "",
+                                    StartDate: "",
+                                    Equipment: "",
+                                    Reminder: "",
+                                    Quantity: ""
+                                };
                                 var startdate = obj[index].date;
                                 var startperiods = obj[index].periods.toString();
                                 var nextdate = (typeof obj[adv] === 'undefined') ? (obj[index].date) : (obj[adv].date);
