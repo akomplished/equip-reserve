@@ -136,7 +136,7 @@
         */
         var accessToken = gapi.auth.getToken().access_token;
         var request = gapi.client.request({
-            'path': '/drive/v2/files/' + fileInfo.id,
+            'path': 'https://www.googleapis.com//drive/v2/files/' + fileInfo.id,
             'method': 'GET',
             'params': { 'alt': 'media' },
             'headers': {
