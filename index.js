@@ -134,6 +134,7 @@
         xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
         xhr.send();
         */
+        var accessToken = gapi.auth.getToken().access_token;
         var request = gapi.client.request({
             'path': '/drive/v2/files/' + fileInfo.id,
             'method': 'GET',
