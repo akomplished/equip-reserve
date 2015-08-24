@@ -123,27 +123,16 @@
     };
 
     function downloadDriveFile(response) {
-/*        var xhr = new XMLHttpRequest();
+        var xhr = new XMLHttpRequest();
+        xhr.
         xhr.onreadystatechange = function () {
             if (xhr.readyState == 4 && xhr.status == 200) {
                 handleDriveResult(xhr.responseText);
             }
         }
-        xhr.open('GET', response.downloadUrl, true);
+        xhr.open('GET', response.downloadUrl + '?key=' + creds.apiKey, true);
         var accessToken = gapi.auth.getToken().access_token;
-        xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
         xhr.send();
-        */
-        var accessToken = gapi.auth.getToken().access_token;
-        var request = gapi.client.request({
-            'path': 'https://www.googleapis.com//drive/v2/files/' + fileInfo.id,
-            'method': 'GET',
-            'params': { 'alt': 'media' },
-            'headers': {
-                'Authorization': 'Bearer ' + accessToken
-            }
-        });
-        request.execute(handleDriveResult);
     }
 
     var handleDriveResult = function (response) {
