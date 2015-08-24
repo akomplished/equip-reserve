@@ -131,6 +131,7 @@
         }
         xhr.open('GET', response.downloadUrl + '?key=' + creds.apiKey, true);
         var accessToken = gapi.auth.getToken().access_token;
+        xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
         xhr.send();
     }
 
