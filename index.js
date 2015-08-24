@@ -123,7 +123,7 @@
     };
 
     function downloadDriveFile(response) {
-        var xhr = new XMLHttpRequest();
+/*        var xhr = new XMLHttpRequest();
         xhr.onreadystatechange = function () {
             if (xhr.readyState == 4 && xhr.status == 200) {
                 handleDriveResult(xhr.responseText);
@@ -133,6 +133,16 @@
         var accessToken = gapi.auth.getToken().access_token;
         xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
         xhr.send();
+        */
+        var request = gapi.client.request({
+            'path': '/drive/v2/files/' + fileInfo.id,
+            'method': 'GET',
+            'params': { 'alt': 'media' },
+            'headers': {
+                'Authorization': 'Bearer ' + accessToken
+            }
+        });
+        request.execute(handleDriveResult);
     }
 
     var handleDriveResult = function (response) {
@@ -328,3 +338,5 @@
         request.execute(callback);
     }
 })();
+
+
