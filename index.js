@@ -125,7 +125,7 @@
     function downloadDriveFile(response) {
         var accessToken = gapi.auth.getToken().access_token;
         var xhr = new XMLHttpRequest();
-        xhr.open('GET', response.downloadUrl);
+        xhr.open('GET', response.webContentLink);
         xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
         xhr.onload = function () {
             console.log(xhr.responseText);
