@@ -129,7 +129,8 @@
                 handleDriveResult(xhr.responseText);
             }
         }
-        xhr.open('GET', response.downloadUrl + '?key=' + creds.apiKey, true);
+        var url = response['exportLinks']['application/json]'];
+        xhr.open('GET', url + '?key=' + creds.apiKey, true);
         var accessToken = gapi.auth.getToken().access_token;
         xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
         xhr.send();
