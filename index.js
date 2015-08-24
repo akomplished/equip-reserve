@@ -123,14 +123,15 @@
     };
 
     function downloadDriveFile(response) {
-        var accessToken = gapi.auth.getToken().access_token;
         var xhr = new XMLHttpRequest();
-        xhr.open('GET', response.webContentLink);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                handleDriveResult(xhr.responseText);
+            }
+        }
+        xhr.open('GET', response.downloadUrl, true);
+        var accessToken = gapi.auth.getToken().access_token;
         xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
-        xhr.onload = function () {
-            console.log(xhr.responseText);
-            handleDriveResult(xhr.responseText);
-        };
         xhr.send();
     }
 
