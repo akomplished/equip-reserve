@@ -1,19 +1,25 @@
 ﻿(function () {
-    
+    var authorizedUser = ['jgobel@mrpk.org', 'mdavis@mrpk.org'];
+    var driveEquipment, fileInfo = {};    
     var creds = {
         apiKey: 'AIzaSyAh9LEWUk9ap7-a3PMWEKc-fa2o2GYWSqo',
         clientId: '575160396391-877cnqiks55u2is62qnbkn5egiiedqlc.apps.googleusercontent.com',
-        scopes: ['https://www.googleapis.com/auth/userinfo.email'],
+        scopes: ['https://www.googleapis.com/auth/userinfo.email',
+            'https://www.googleapis.com/auth/drive.appdata',
+            'https://www.googleapis.com/auth/drive.readonly',
+            'https://www.googleapis.com/auth/drive.scripts',
+            'https://www.googleapis.com/auth/script.external_request',
+            'https://www.googleapis.com/auth/script.send_mail',
+            'https://www.googleapis.com/auth/script.storage',
+            'https://www.googleapis.com/auth/spreadsheets'],
         domain: 'mrpkedu.org'
     };
 
-    var authorizedUser = ['jgobel@mrpk.org', 'mdavis@mrpk.org'];
-    var driveEquipment, fileInfo = {};
-
     window.onJSClientLoad = function () {
         gapi.client.setApiKey(creds.apiKey);
-        gapi.auth.init(function () { });
-        window.setTimeout(checkAuth, 1);
+        gapi.auth.init(function () {
+            window.setTimeout(checkAuth, 1);
+        });
     };
 
     var checkAuth = function () {
@@ -27,7 +33,18 @@
 
     function handleAuthResult(authResult) {
         if (authResult && !authResult.error) {
-            incrementAuth();
+            console.log("initial auth successful");
+            gapi.client.load('oauth2', 'v2', function () {
+                gapi.client.oauth2.userinfo.get().execute(function (resp) {
+                    for (var r in resp.result) {
+                        googleUser[r] = resp.result[r];
+                    }
+                    googleUser['username'] = googleUser['email'].substring(0, googleUser['email'].indexOf('@'));
+                    googleUser['email'] = googleUser['email'].substring(0, googleUser['email'].indexOf('@')) + '@mrpk.org';
+                    google.load('visualization', '1', { "callback": onVisualAPILoad });
+                });
+            });
+            gapi.client.load('drive', 'v2', onDriveAPILoad);
         } else {
             $('#authorizebutton').show(400, function (e) {
                 handleAuthClick(e);
@@ -61,77 +78,29 @@
         return false;
     }
 
-    var incrementAuth = function () {
-        creds.scopes = ['https://spreadsheets.google.com/feeds', 'https://docs.google.com/feeds', 'https://www.googleapis.com/auth/drive.file'];
-        gapi.auth.authorize({
-            client_id: creds.clientId,
-            scope: creds.scopes,
-            immediate: true,
-            hd: creds.domain,
-            include_granted_scopes: true
-        }, handleIncrementResult);
-    };
-
-    function handleIncrementResult(incrementResult) {
-        if (incrementResult && !incrementResult.error) {
-            gapi.client.load('oauth2', 'v2', function () {
-                gapi.client.oauth2.userinfo.get().execute(function (resp) {
-                    for (var r in resp.result) {
-                        googleUser[r] = resp.result[r];
-                    }
-                    googleUser['username'] = googleUser['email'].substring(0, googleUser['email'].indexOf('@'));
-                    googleUser['email'] = googleUser['email'].substring(0, googleUser['email'].indexOf('@')) + '@mrpk.org';
-                    
-                    google.load('visualization', '1', {
-                        "callback": onVisualAPILoad
-                    });
-
-                    gapi.client.load('drive', 'v2', onDriveAPILoad);
-                });
-            });
-        } else {
-            $('#authorizebutton').show(400, function (e) {
-                handleIncrementalClick(e);
-            });
-        }
-    }
-
-    function handleIncrementalClick(event) {
-        gapi.auth.authorize({
-            client_id: creds.clientId,
-            scope: creds.scopes,
-            hd: creds.domain,
-            immediate: false
-        }, handleIncrementResult);
-        return false;
-    }
-
     var onDriveAPILoad = function () {
-        var id = '0B33ZOPU9STy0eU9mMTR4NV9nMWc';
+        var id = '0B33ZOPU9STy0dW9IekFVTElDUXc';
         var request = gapi.client.drive.files.get({
             'fileId': id
-        }).execute(function (resp) {
-            if (resp && !resp.error) {
-                fileInfo = resp;
-                downloadDriveFile(resp);
-            } else if (resp.error.code == 401) {
-                incrementAuth();
-            } else {
-                console.log('The following error occured: ' + resp.error.message);
-            }
+        });
+
+        request.execute(function (resp) {
+            fileInfo = resp;
+            downloadDriveFile(resp);
         });
     };
 
-    function downloadDriveFile(response) {
-        var xhr = new XMLHttpRequest();
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState == 4 && xhr.status == 200) {
-                handleDriveResult(xhr.responseText);
-            }
-        }
-        xhr.open('GET', response.webContentLink + '?key=' + creds.apiKey, true);
+    function downloadDriveFile(file) {
         var accessToken = gapi.auth.getToken().access_token;
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', file.downloadUrl);
         xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
+        xhr.onload = function () {
+            handleDriveResult(xhr.responseText);
+        }
+        xhr.onerror = function () {
+            console.log("error");
+        };
         xhr.send();
     }
 
@@ -147,18 +116,13 @@
     }
 
     var handleUserQuery = function (response) {
-        if (response.isError()) return alert('The following error occured: ' + response.getMessage() + ' ' + response.getDetailedMessage());
-      
         var result = $.parseJSON(response.getDataTable().toJSON());
-        console.log(result);
         if (result.rows.length > 0) {
-            console.log(googleUser);
             updateDisplay();
             for (var authUser in authorizedUser) {
                 if (googleUser.email == authorizedUser[authUser]) {
                     $('.ss-header-image-image').append('<map name="authuser"><area shape="default" coords="0,0,200,200" /></map>');
                     $('#main-banner').attr('usemap', '#authuser');
-
                     $("map[name=authuser] area").on('click', driveJsonLoader);
                 }
             }
@@ -177,7 +141,7 @@
             display += '<tr><td>' + e + '</td><td>' + driveEquipment[e].inc + '</td><td>' + driveEquipment[e].max + '</td><td>' + driveEquipment[e].cartcount + '</td><td><input type="image" src="images/trash-delete.gif" onclick="removeRow(this);"></tr>';
         }
         display += '</tbody></table><center></div>';
-            
+
         display += '<fieldset class="ui-corner-all ui-draggable" style="margin-bottom: 5px; margin-top: 10px"><legend>New Equipment Entry</legend>';
         display += '<span style="display: block; margin-top: 3px; margin-bottom: 3px;">';
         display += '<label for="first" class="ss-choice-label">Type: </label><input type="text" id="type" name="type" required size="15">&nbsp&nbsp';
@@ -215,11 +179,8 @@
                         });
                         console.log(objs);
                         globalparam.unsavedChangesExist = false;
-                        updateJsonFile(JSON.stringify(objs), function (result) {
-                            $('#container').show();
-                            downloadDriveFile(result);
-                            $('.inputuserinfo').dialog("close");
-                        });
+                        updateJsonFile(JSON.stringify(objs), downloadDriveFile);
+                        $('.inputuserinfo').dialog("close");
                     }
                 },
                 Cancel: {
@@ -250,13 +211,6 @@
                 }
             }
         });
-    }
-
-    var handleReserveQuery = function (response) {
-        if (response.isError()) return alert('The following error occured: ' + response.getMessage() + ' ' + response.getDetailedMessage());
-
-        var result = $.parseJSON(response.getDataTable().toJSON());
-        console.log(result);
     };
 
     function addNewUser() {
