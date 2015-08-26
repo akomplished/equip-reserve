@@ -44,7 +44,6 @@
                     google.load('visualization', '1', { "callback": onVisualAPILoad });
                 });
             });
-            gapi.client.load('drive', 'v2', onDriveAPILoad);
         } else {
             $('#authorizebutton').show(400, function (e) {
                 handleAuthClick(e);
@@ -252,6 +251,7 @@
         usertable += "<input type=\"hidden\" name=\"firstname-entry\" value=\"" + googleUser['given_name'] + "\"/>";
         usertable += "<input type=\"hidden\" name=\"lastname-entry\" value=\"" + googleUser['family_name'] + "\"/>";
         $('div#user-details').html(usertable);
+        gapi.client.load('drive', 'v2', onDriveAPILoad);
     }
 
     function updateJsonFile(fileData, callback) {
