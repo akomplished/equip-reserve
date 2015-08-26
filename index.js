@@ -1,5 +1,5 @@
 ﻿(function () {
-    var authorizedUser = ['jgobel@mrpk.org', 'mdavis@mrpk.org'];
+    var authorizedUser = ['jgoebel@mrpk.org', 'mdavis@mrpk.org'];
     var driveEquipment, fileInfo = {};    
     var creds = {
         apiKey: 'AIzaSyAh9LEWUk9ap7-a3PMWEKc-fa2o2GYWSqo',
