@@ -255,9 +255,10 @@
     }
 
     function updateJsonFile(fileData, callback) {
-        var boundary = "-------314159265358979323846";
-        var delimiter = "\r\n--" + boundary + "\r\n";
-        var close_delim = "\r\n--" + boundary + "--";
+        var boundary, delimiter, close_delim;
+        boundary = "-------314159265358979323846";
+        delimiter = "\r\n--" + boundary + "\r\n";
+        close_delim = "\r\n--" + boundary + "--";
         var accessToken = gapi.auth.getToken().access_token;
 
         var metadata = { 'mimeType': fileInfo.mimeType };
