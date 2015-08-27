@@ -255,7 +255,7 @@
     }
 
     function updateJsonFile(fileData, callback) {
-        const boundary = '-------314159265358979323846';
+        const boundary = "-------314159265358979323846";
         const delimiter = "\r\n--" + boundary + "\r\n";
         const close_delim = "\r\n--" + boundary + "--";
         var accessToken = gapi.auth.getToken().access_token;
